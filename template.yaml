@@ -22,13 +22,9 @@ Resources:
         - AWSXrayWriteOnlyAccess
         - SNSPublishMessagePolicy:
             TopicName: !GetAtt notification.TopicName
+        - DynamoDBCrudPolicy:
+            TableName: !Ref subscribers
       Events:
-        subscribers:
-          Type: DynamoDB
-          Properties:
-            Stream: !GetAtt subscribers.StreamArn
-            StartingPosition: TRIM_HORIZON
-            BatchSize: 1
         Timer:
           Type: Schedule
           Properties:
@@ -37,6 +33,8 @@ Resources:
         Variables:
           TOPIC_NAME: !GetAtt notification.TopicName
           TOPIC_ARN: !Ref notification
+          TABLE_NAME: !Ref subscribers
+          TABLE_ARN: !GetAtt subscribers.Arn
   subscribers:
     Type: AWS::DynamoDB::Table
     Properties:
