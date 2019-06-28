@@ -51,11 +51,11 @@ Resources:
       Policies:
         - AWSXrayWriteOnlyAccess
         - SNSPublishMessagePolicy:
-            TopicName: !GetAtt arrivalNotification.TopicName
+            TopicName: !GetAtt notification.TopicName
       Environment:
         Variables:
-          TOPIC_NAME: !GetAtt arrivalNotification.TopicName
-          TOPIC_ARN: !Ref arrivalNotification
+          TOPIC_NAME: !GetAtt notification.TopicName
+          TOPIC_ARN: !Ref notification
       Events:
         subscribers:
           Type: DynamoDB
@@ -63,10 +63,10 @@ Resources:
             Stream: !GetAtt subscribers.StreamArn
             StartingPosition: TRIM_HORIZON
             BatchSize: 1
-  arrivalNotification:
+  notification:
     Type: AWS::SNS::Topic
     Properties:
-      TopicName: !Sub ${AWS::StackName}-arrivalNotification
+      TopicName: !Sub ${AWS::StackName}-notification
 Parameters:
   StackTagName:
     Type: String
