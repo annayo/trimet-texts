@@ -1,40 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 Transform: AWS::Serverless-2016-10-31
 Resources:
-  setupSubcribers:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub ${AWS::StackName}-setupSubcribers
-      Description: !Sub
-        - Stack ${StackTagName} Environment ${EnvironmentTagName} Function ${ResourceName}
-        - ResourceName: setupSubcribers
-      CodeUri: src/Function
-      Handler: index.handler
-      Runtime: nodejs10.x
-      MemorySize: 3008
-      Timeout: 30
-      Tracing: Active
-      Policies:
-        - AWSXrayWriteOnlyAccess
-        - DynamoDBCrudPolicy:
-            TableName: !Ref subscribers
-      Environment:
-        Variables:
-          TABLE_NAME: !Ref subscribers
-          TABLE_ARN: !GetAtt subscribers.Arn
-  subscribers:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      AttributeDefinitions:
-        - AttributeName: id
-          AttributeType: S
-      BillingMode: PAY_PER_REQUEST
-      KeySchema:
-        - AttributeName: id
-          KeyType: HASH
-      StreamSpecification:
-        StreamViewType: NEW_AND_OLD_IMAGES
-      TableName: !Sub ${AWS::StackName}-subscribers
   notifySubscribers:
     Type: AWS::Serverless::Function
     Properties:
@@ -56,13 +22,6 @@ Resources:
         Variables:
           TOPIC_NAME: !GetAtt notification.TopicName
           TOPIC_ARN: !Ref notification
-      Events:
-        subscribers:
-          Type: DynamoDB
-          Properties:
-            Stream: !GetAtt subscribers.StreamArn
-            StartingPosition: TRIM_HORIZON
-            BatchSize: 1
   notification:
     Type: AWS::SNS::Topic
     Properties:
