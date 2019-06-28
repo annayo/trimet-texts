@@ -1,14 +1,18 @@
 AWSTemplateFormatVersion: 2010-09-09
 Transform: AWS::Serverless-2016-10-31
 Resources:
-  notifySubscribers:
+  notification:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub ${AWS::StackName}-notification
+  fetchArrivals:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub ${AWS::StackName}-notifySubscribers
+      FunctionName: !Sub ${AWS::StackName}-fetchArrivals
       Description: !Sub
         - Stack ${StackTagName} Environment ${EnvironmentTagName} Function ${ResourceName}
-        - ResourceName: notifySubscribers
-      CodeUri: src/Function2
+        - ResourceName: fetchArrivals
+      CodeUri: src/fetchArrivals
       Handler: index.handler
       Runtime: nodejs10.x
       MemorySize: 3008
@@ -18,14 +22,55 @@ Resources:
         - AWSXrayWriteOnlyAccess
         - SNSPublishMessagePolicy:
             TopicName: !GetAtt notification.TopicName
+      Events:
+        subscribers:
+          Type: DynamoDB
+          Properties:
+            Stream: !GetAtt subscribers.StreamArn
+            StartingPosition: TRIM_HORIZON
+            BatchSize: 1
+        Timer:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
       Environment:
         Variables:
           TOPIC_NAME: !GetAtt notification.TopicName
           TOPIC_ARN: !Ref notification
-  notification:
-    Type: AWS::SNS::Topic
+  subscribers:
+    Type: AWS::DynamoDB::Table
     Properties:
-      TopicName: !Sub ${AWS::StackName}-notification
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      TableName: !Sub ${AWS::StackName}-subscribers
+  addSubscriber:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${AWS::StackName}-addSubscriber
+      Description: !Sub
+        - Stack ${StackTagName} Environment ${EnvironmentTagName} Function ${ResourceName}
+        - ResourceName: addSubscriber
+      CodeUri: src/addSubscriber
+      Handler: index.handler
+      Runtime: nodejs10.x
+      MemorySize: 3008
+      Timeout: 30
+      Tracing: Active
+      Policies:
+        - AWSXrayWriteOnlyAccess
+        - DynamoDBCrudPolicy:
+            TableName: !Ref subscribers
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref subscribers
+          TABLE_ARN: !GetAtt subscribers.Arn
 Parameters:
   StackTagName:
     Type: String
