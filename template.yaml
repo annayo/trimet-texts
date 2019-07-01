@@ -1,14 +1,14 @@
 AWSTemplateFormatVersion: 2010-09-09
 Transform: AWS::Serverless-2016-10-31
 Resources:
-  Function:
+  fetchSend:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub ${AWS::StackName}-Function
+      FunctionName: !Sub ${AWS::StackName}-fetchSend
       Description: !Sub
         - Stack ${StackTagName} Environment ${EnvironmentTagName} Function ${ResourceName}
-        - ResourceName: Function
-      CodeUri: src/Function
+        - ResourceName: fetchSend
+      CodeUri: src/fetchSend
       Handler: index.handler
       Runtime: nodejs10.x
       MemorySize: 3008
@@ -17,15 +17,17 @@ Resources:
       Policies:
         - AWSXrayWriteOnlyAccess
         - SNSPublishMessagePolicy:
-            TopicName: !GetAtt Topic.TopicName
+            TopicName: !GetAtt Arrivals.TopicName
       Environment:
         Variables:
-          TOPIC_NAME: !GetAtt Topic.TopicName
-          TOPIC_ARN: !Ref Topic
-  Topic:
+          TOPIC_NAME: !GetAtt Arrivals.TopicName
+          TOPIC_ARN: !Ref Arrivals
+  Arrivals:
     Type: AWS::SNS::Topic
     Properties:
-      TopicName: !Sub ${AWS::StackName}-Topic
+      Endpoint: 3019934362
+      Protocol: sms
+      TopicArn: !Ref Arrivals
 Parameters:
   StackTagName:
     Type: String
