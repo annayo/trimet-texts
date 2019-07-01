@@ -27,7 +27,7 @@ Resources:
   ArrivalsSubscription:
     Type: AWS::SNS::Subscription
     Properties:
-      Endpoint: 1234567890
+      Endpoint: 3109934362
       Protocol: sms
       TopicArn: !Ref Arrivals
 Parameters:
