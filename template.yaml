@@ -22,7 +22,7 @@ Resources:
           - Effect: Allow
             Action:
               - sns:Subscribe
-              - sns:ListSubscribersByTopic
+              - sns:ListSubscriptionsByTopic
             Resource: '*'
       Environment:
         Variables:
