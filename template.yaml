@@ -19,15 +19,22 @@ Resources:
         - SNSPublishMessagePolicy:
             TopicName: !GetAtt Arrivals.TopicName
         - Statement:
-          - Effect: Allow
-            Action:
-              - sns:Subscribe
-              - sns:ListSubscriptionsByTopic
-            Resource: '*'
+            - Effect: Allow
+              Action:
+                - sns:Subscribe
+                - sns:ListSubscriptionsByTopic
+              Resource: '*'
       Environment:
         Variables:
           TOPIC_NAME: !GetAtt Arrivals.TopicName
           TOPIC_ARN: !Ref Arrivals
+      Events:
+        Timer:
+          Type: Schedule
+          Properties:
+            Schedule: 'cron(0/2  13-15 ? * MON,WED,FRI *)'
+          Metadata:
+            StackeryName: Schedule
   Arrivals:
     Type: AWS::SNS::Topic
 Parameters:
