@@ -1,5 +1,6 @@
 const AWS = require('aws-sdk');
 const fetch = require('isomorphic-fetch');
+const moment = require('moment');
 
 const sns = new AWS.SNS();
 const appId = '0BAC5803E13E9DCE2A9EDE2D3';
@@ -40,3 +41,26 @@ exports.handler = async (event, context) => {
   const fetchArrivals = await fetch(url, options);
   const fetchArrivalsResults = await fetchArrivals.json();
   const arrivalsByRoute = fetchArrivalsResults.resultSet.arrival.filter(arrival => arrival.route === route && !arrival.dropOffOnly);
+
+  await Promise.all(arrivalsByRoute.map(arrival => (
+    sns.publish({
+      Subject: `Bus ${arrival.route} comin up ${moment().to(new Date(arrival.estimated))}!`,
+      Message: `Bus ${arrival.route} comin up ${moment().to(new Date(arrival.estimated))}!`,
+      TopicArn: topicArn,
+      MessageAttributes: {
+        'stopId': {
+          DataType: 'Number',
+          StringValue: `${stopId}`
+        },
+        'route': {
+          DataType: 'Number',
+          StringValue: `${route}`
+        },
+        'isScheduledTime': {
+          DataType: 'String',
+          StringValue: 'true'
+        }
+      }
+    }).promise()
+  )));
+};
