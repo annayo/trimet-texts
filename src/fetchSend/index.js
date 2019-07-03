@@ -1,5 +1,9 @@
 const AWS = require('aws-sdk');
+const fetch = require('isomorphic-fetch');
+
 const sns = new AWS.SNS();
+const appId = '0BAC5803E13E9DCE2A9EDE2D3';
+
 exports.handler = async (event, context) => {
   const topicArn = process.env.TOPIC_ARN;
   const endpoint = 'anna@stackery.io';
@@ -24,4 +28,15 @@ exports.handler = async (event, context) => {
       }
     }).promise();
   }
-};
+
+  const url = `https://developer.trimet.org/ws/v2/arrivals?locIDs=${stopId}&appID=${appId}`;
+  const options = {
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    method: 'GET'
+  };
+
+  const fetchArrivals = await fetch(url, options);
+  const fetchArrivalsResults = await fetchArrivals.json();
+  const arrivalsByRoute = fetchArrivalsResults.resultSet.arrival.filter(arrival => arrival.route === route && !arrival.dropOffOnly);
