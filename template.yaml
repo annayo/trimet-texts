@@ -32,7 +32,7 @@ Resources:
         Timer:
           Type: Schedule
           Properties:
-            Schedule: 'cron(0/2 13-15 ? * MON,WED,FRI *)'
+            Schedule: 'cron(0/2 10-11 ? * MON,WED,FRI *)'
           Metadata:
             StackeryName: Schedule
   Arrivals:
