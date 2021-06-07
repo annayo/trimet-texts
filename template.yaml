@@ -32,11 +32,26 @@ Resources:
         Timer:
           Type: Schedule
           Properties:
-            Schedule: 'cron(0/5 0-1 ? * MON,WED,FRI *)'
+            Schedule: cron(0/5 0-1 ? * MON,WED,FRI *)
           Metadata:
             StackeryName: Schedule
   Arrivals:
     Type: AWS::SNS::Topic
+  Function:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${AWS::StackName}-Function
+      Description: !Sub
+        - Stack ${StackTagName} Environment ${EnvironmentTagName} Function ${ResourceName}
+        - ResourceName: Function
+      CodeUri: src/Function
+      Handler: index.handler
+      Runtime: nodejs14.x
+      MemorySize: 3008
+      Timeout: 30
+      Tracing: Active
+      Policies:
+        - AWSXrayWriteOnlyAccess
 Parameters:
   StackTagName:
     Type: String
